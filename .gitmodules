@@ -1,0 +1,3 @@
+[submodule "cnos"]
+	path = cnos
+	url = https://github.com/Abhishek8857/cnos.git
