@@ -1,8 +1,13 @@
 FROM osrf/ros:humble-desktop
 
+ENV PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128,garbage_collection_threshold:0.8
+ENV RGB_PATH=/root/cnos/images/
+ENV OUTPUT_DIR=/root/cnos/renders/
+ENV CAD_PATH=/root/cnos/templates/
+
 # Get Dependancies
 RUN apt-get update && apt-get install -y \
-    build-essential cmake git wget \
+    build-essential cmake git wget unzip \
     software-properties-common \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update \
@@ -27,5 +32,15 @@ RUN /opt/cnos-venv/bin/pip install git+https://github.com/facebookresearch/segme
 
 # Install FastSAM
 RUN /opt/cnos-venv/bin/pip install ultralytics==8.0.135
+
+# Get DinoV2
+RUN wget -O /root/dinov2.zip https://github.com/facebookresearch/dinov2/archive/85a24602099d397264d5b30461ad7f3bfd726ca1.zip && \
+    cd /root && unzip -q dinov2.zip && \
+    mv dinov2-85a24602099d397264d5b30461ad7f3bfd726ca1 dinov2
+
+# Download model checkpoints for DinoV2
+RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
+    wget -q -O /root/.cache/torch/hub/checkpoints/dinov2_vitl14_pretrain.pth \
+    https://dl.fbaipublicfiles.com/dinov2/dinov2_vitl14/dinov2_vitl14_pretrain.pth
 
 WORKDIR /root/cnos
