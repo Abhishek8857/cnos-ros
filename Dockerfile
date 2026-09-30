@@ -1,9 +1,17 @@
 FROM osrf/ros:humble-desktop
 
+# Set Environments
 ENV PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128,garbage_collection_threshold:0.8
 ENV RGB_PATH=/root/cnos/images/
 ENV OUTPUT_DIR=/root/cnos/results/
 ENV CAD_PATH=/root/cnos/templates/  
+
+# For Terminal bash 
+SHELL ["/bin/bash", "-c"]
+
+# Source ROS environments
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc \
+ && echo "source /root/cnos-ros/colcon_ws/install/setup.bash" >> /root/.bashrc
 
 # Get Dependancies
 RUN apt-get update && apt-get install -y \
@@ -15,7 +23,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy files
-COPY /cnos/ /root/cnos/
+COPY /cnos/ /root/cnos-ros/
+COPY /colcon_ws/ /root/cnos-ros/
+
+# Change working directory 
+WORKDIR /root/cnos-ros/cnos/
 
 # Build Conda Environment
 RUN python3.9 -m venv /opt/cnos-venv
@@ -33,14 +45,21 @@ RUN /opt/cnos-venv/bin/pip install git+https://github.com/facebookresearch/segme
 # Install FastSAM
 RUN /opt/cnos-venv/bin/pip install ultralytics==8.0.135
 
-# Get DinoV2 (Getting this specific because of missing 'from __future__ import annotations' error)
+# Get DinoV2 (Getting this specific version because of missing 'from __future__ import annotations' error)
 RUN wget -O /root/dinov2.zip https://github.com/facebookresearch/dinov2/archive/85a24602099d397264d5b30461ad7f3bfd726ca1.zip && \
     cd /root && unzip -q dinov2.zip && \
-    mv dinov2-85a24602099d397264d5b30461ad7f3bfd726ca1 dinov2
+    mv dinov2-85a24602099d397264d5b30461ad7f3bfd726ca1 dinov2 && rm -rf dinov2.zip
 
 # Download model checkpoints for DinoV2
 RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
     wget -q -O /root/.cache/torch/hub/checkpoints/dinov2_vitl14_pretrain.pth \
     https://dl.fbaipublicfiles.com/dinov2/dinov2_vitl14/dinov2_vitl14_pretrain.pth
 
-WORKDIR /root/cnos
+# Change working directory
+WORKDIR /root/cnos-ros/colcon_ws/
+
+# Source ROS and build packages
+RUN source /opt/ros/humble/setup.bash && colcon build
+
+# Change working directory
+WORKDIR /root/cnos-ros/
