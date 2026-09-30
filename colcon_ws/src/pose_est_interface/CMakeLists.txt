@@ -10,14 +10,16 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-rosidl_generate_interfaces(
+rosidl_generate_interfaces(${PROJECT_NAME}
   "action/GetPose.action"
   "srv/EstimatePose.srv"
   "srv/Segment.srv"
+  DEPENDENCIES geometry_msgs sensor_msgs std_msgs builtin_interfaces
 )
 
 if(BUILD_TESTING)

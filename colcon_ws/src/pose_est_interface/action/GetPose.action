@@ -8,4 +8,4 @@ string message
 ---
 # Feedback
 string stage 
-float progress  
+float32 progress  

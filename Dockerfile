@@ -23,8 +23,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy files
-COPY /cnos/ /root/cnos-ros/
-COPY /colcon_ws/ /root/cnos-ros/
+COPY /cnos/ /root/cnos-ros/cnos/
 
 # Change working directory 
 WORKDIR /root/cnos-ros/cnos/
@@ -55,9 +54,12 @@ RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
     wget -q -O /root/.cache/torch/hub/checkpoints/dinov2_vitl14_pretrain.pth \
     https://dl.fbaipublicfiles.com/dinov2/dinov2_vitl14/dinov2_vitl14_pretrain.pth
 
+# Copy Files 
+COPY /colcon_ws/src/ /root/cnos-ros/colcon_ws/src/
+
 # Change working directory
 WORKDIR /root/cnos-ros/colcon_ws/
-
+    
 # Source ROS and build packages
 RUN source /opt/ros/humble/setup.bash && colcon build
 
