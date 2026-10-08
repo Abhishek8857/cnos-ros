@@ -17,6 +17,7 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
       - PYOPENGL_PLATFORM=egl
       - DISPLAY=${DISPLAY}
+      - ROS_DOMAIN_ID=0
     deploy:
       resources:
         reservations:
