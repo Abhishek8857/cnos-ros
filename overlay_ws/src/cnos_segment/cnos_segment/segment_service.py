@@ -22,17 +22,17 @@ class CnosSegmentNode(Node):
         self.bridge = CvBridge()
         self.lock = threading.Lock()
         self.latest_image = None
-        self.cad_path = self.declare_parameter('cad_path', '/workspace/cnos/templates/cube.obj').value
-        self.template_dir = self.declare_parameter('template_dir', '/root/cnos-ros/cnos/templates/').value
+        self.cad_path = self.declare_parameter('cad_path', '/workspace/cnos-ros/cnos/templates/cube.obj').value
+        self.template_dir = self.declare_parameter('template_dir', '/root/cnos-ros/cnos/templates').value
         self.obj_pose_path = self.declare_parameter('obj_pose_path', './src/poses/predefined_poses/obj_poses_level0.npy').value
         self.light_intensity = self.declare_parameter('light_intensity', 1.0).value
         self.radius = self.declare_parameter('radius', 0.4).value 
-        self.save_dir = self.declare_parameter('save_dir', '/root/cnos-ros/cnos/segmaps').value
+        self.save_dir = self.declare_parameter('save_dir', '/workspace/cnos-ros/cnos/segmaps').value
         
         if self.save_dir: 
             os.makedirs(self.save_dir, exist_ok=True)
         
-        image_topic = self.declare_parameter('image_topic', '/front_stereo_camera/rgb/image_raw').value    
+        self.image_topic = self.declare_parameter('image_topic', '/front_stereo_camera/rgb/image_raw').value    
         
         qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -40,8 +40,8 @@ class CnosSegmentNode(Node):
             depth=1,
         )
         
-        self.image_sub = self.create_subscription(Image, image_topic, self.image_callback, qos)
-        self.get_logger().info(f"Subscribed to image topic: {image_topic}")
+        self.image_sub = self.create_subscription(Image, self.image_topic, self.image_callback, qos)
+        self.get_logger().info(f"Subscribed to image topic: {self.image_topic}")
 
         self.ensure_templates_exist()
         
@@ -69,7 +69,7 @@ class CnosSegmentNode(Node):
         self.srv = self.create_service(Segment, '/cnos/segment', self.handle_segment)
 
     def ensure_templates_exist(self):
-        renders_dir = os.path.join(self.template_dir, "renders")
+        renders_dir = os.path.join(CNOS_DIR, "templates", "renders")
         existing_pngs = glob.glob(os.path.join(renders_dir, "*.png"))
         if existing_pngs:
             self.get_logger().info(
