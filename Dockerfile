@@ -11,7 +11,8 @@ SHELL ["/bin/bash", "-c"]
 
 # Source ROS environments
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc \
- && echo "source /root/cnos-ros/colcon_ws/install/setup.bash" >> /root/.bashrc
+ && echo "source /root/cnos-ros/colcon_ws/install/setup.bash" >> /root/.bashrc \
+ && echo "source /root/cnos-ros/overlay_ws/install/setup.bash" >> /root/.bashrc
 
 # Get Dependancies
 RUN apt-get update && apt-get install -y \
@@ -56,10 +57,17 @@ RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
 
 # Copy Files 
 COPY /colcon_ws/src/ /root/cnos-ros/colcon_ws/src/
+COPY /overlay_ws/src/ /root/cnos-ros/overlay_ws/src/
 
 # Change working directory
 WORKDIR /root/cnos-ros/colcon_ws/
     
+# Source ROS and build packages
+RUN source /opt/ros/humble/setup.bash && colcon build
+
+# Change working directory
+WORKDIR /root/cnos-ros/overlay_ws/
+
 # Source ROS and build packages
 RUN source /opt/ros/humble/setup.bash && colcon build
 
